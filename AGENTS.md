@@ -22,9 +22,9 @@ No hay tests, lint, typecheck ni formatter configurado. Verificar cambios con `n
 ## Repo
 
 - Git: rama `main`, remote `origin` = `github.com/eddy16pacheco-lab/portafolio_web` (**guion bajo**, no guion).
-- Deploy: GitHub Pages vía `.github/workflows/deploy.yml` (push a `main`; usa `npm ci`, requiere `package-lock.json`). Requiere habilitar **Settings → Pages → Source → GitHub Actions** una vez.
-- `vite.config.js` lee `base: process.env.BASE_PATH || '/'`. **`BASE_PATH` del workflow debe coincidir con el nombre del repo** (hoy: `/portafolio_web/`) o los assets darán 404. Para sitio de usuario (`eddy16pacheco-lab.github.io`), usar `BASE_PATH: /`.
-- Alternativa documentada: Vercel (usado para AdminPyme).
+- **Deploy principal: Vercel** — `https://portafolio-web-five-rust.vercel.app/`, conectado al repo (auto-deploy con cada push a `main`). En Vercel `base` queda en `/`.
+- Deploy secundario (respaldo): GitHub Pages vía `.github/workflows/deploy.yml` (push a `main`; usa `npm ci`, requiere `package-lock.json`). `BASE_PATH: /portafolio_web/` debe coincidir con el nombre del repo.
+- Las URLs absolutas del OG (`og:url`, `og:image`, `twitter:image` en `index.html`) apuntan a **Vercel** — ajústalas si cambia el despliegue.
 
 ## Entorno (Windows / PowerShell)
 
@@ -36,7 +36,7 @@ No hay tests, lint, typecheck ni formatter configurado. Verificar cambios con `n
 - Las imágenes en `img/` tienen extensión en MAYÚSCULA (`.PNG`, `.JPG`). Vite no las reconoce por defecto: `vite.config.js` incluye `assetsInclude: ['**/*.PNG', '**/*.JPG', ...]`. No eliminar.
 - Los assets (imágenes, CV en PDF, archivos `.md`) se importan DIRECTO desde `img/` y `docs/` (fuera de `src/`) con imports relativos; los `.md` con sufijo `?raw`. No hay carpeta `public/` — no duplicar archivos ahí.
 - `src/data/content.jsx` es la fuente única de datos: importa todos los assets y exporta profile, projects, experience, contactLinks, etc. Editar contenido ahí o en los archivos fuente de `docs/`/`img/`.
-- **Excepción `public/`**: contiene SOLO `logo.jpg` (copia de `img/Logo_grande.jpg`, 1376×768). Es intencional: el favicon y `og:image`/`twitter:image` necesitan una URL estable en `index.html` (los assets importados llevan hash y rompen el og:image para los crawlers). Si cambias el logo, actualiza `img/Logo_grande.jpg` **y** `public/logo.jpg`. Las meta OG usan URL absoluta `https://eddy16pacheco-lab.github.io/portafolio_web/logo.jpg` — ajústala si cambia el destino de despliegue.
+- **Excepción `public/`**: contiene `logo.jpg` (copia del logo, para favicon) y `og-card.jpg` (tarjeta 1200×630 generada con sharp para og:image/twitter:image — nueva URL = cache-busting en redes). Si cambias el logo, actualiza `img/Logo_grande.jpg`, `public/logo.jpg` y regenera `public/og-card.jpg`. Las meta OG usan URL absoluta `https://eddy16pacheco-lab.github.io/portafolio_web/...` — ajústalas si cambia el destino de despliegue.
 
 
 ## Memoria
