@@ -36,6 +36,7 @@ No hay tests, lint, typecheck ni formatter configurado. Verificar cambios con `n
 - Las imágenes en `img/` tienen extensión en MAYÚSCULA (`.PNG`, `.JPG`). Vite no las reconoce por defecto: `vite.config.js` incluye `assetsInclude: ['**/*.PNG', '**/*.JPG', ...]`. No eliminar.
 - Los assets (imágenes, CV en PDF, archivos `.md`) se importan DIRECTO desde `img/` y `docs/` (fuera de `src/`) con imports relativos; los `.md` con sufijo `?raw`. No hay carpeta `public/` — no duplicar archivos ahí.
 - `src/data/content.jsx` es la fuente única de datos: importa todos los assets y exporta profile, projects, experience, contactLinks, etc. Editar contenido ahí o en los archivos fuente de `docs/`/`img/`.
+- **Excepción `public/`**: contiene SOLO `logo.jpg` (copia de `img/Logo_grande.jpg`, 1376×768). Es intencional: el favicon y `og:image`/`twitter:image` necesitan una URL estable en `index.html` (los assets importados llevan hash y rompen el og:image para los crawlers). Si cambias el logo, actualiza `img/Logo_grande.jpg` **y** `public/logo.jpg`. Las meta OG usan URL absoluta `https://eddy16pacheco-lab.github.io/portafolio_web/logo.jpg` — ajústala si cambia el destino de despliegue.
 
 
 ## Memoria
