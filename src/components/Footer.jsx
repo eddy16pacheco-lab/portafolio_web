@@ -1,4 +1,5 @@
 import { Terminal, Github, Mail } from 'lucide-react';
+import { profile } from '../data/content.jsx';
 
 export default function Footer() {
   return (
@@ -27,7 +28,7 @@ export default function Footer() {
             <Github className="w-4 h-4" />
           </a>
           <a
-            href="mailto:eddy16pacheco@gmail.com"
+            href={`mailto:${profile.email}`}
             className="p-2 rounded-lg border border-white/10 text-muted hover:text-magenta hover:border-magenta/40 transition-colors"
             aria-label="Correo"
           >

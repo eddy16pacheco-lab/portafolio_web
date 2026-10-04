@@ -1,18 +1,49 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, MailOpen, MapPin, ArrowUpRight } from 'lucide-react';
-import { contactLinks, locationInfo, profile } from '../data/content.jsx';
+import { Send, CheckCircle2, AlertCircle, MapPin, ArrowUpRight } from 'lucide-react';
+import { contactLinks, locationInfo, profile, whatsappCta, enlaceSections, formspreeEndpoint } from '../data/content.jsx';
 
 export default function Contact() {
   const [form, setForm] = useState({ nombre: '', email: '', mensaje: '' });
+  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
 
-  // Compone un mailto real: abre el cliente de correo (Gmail, Outlook…)
-  // con el mensaje listo para enviar. Sin servidores ni simulaciones.
-  const handleSubmit = (e) => {
+  // Envío real por Formspree: el mensaje llega a la bandeja de
+  // profile.email sin servidor propio. `_replyto` permite responder
+  // directo al visitante. Si el endpoint falla, hay fallback mailto.
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent(
-      `Portafolio — mensaje de ${form.nombre}`
-    );
+    setStatus('sending');
+    try {
+      const res = await fetch(formspreeEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.nombre,
+          email: form.email,
+          message: form.mensaje,
+          _subject: `Portafolio — mensaje de ${form.nombre}`,
+          _replyto: form.email,
+          _gotcha: form.honey || '', // honeypot anti-spam de Formspree
+        }),
+      });
+      if (res.ok) {
+        setStatus('sent');
+        setForm({ nombre: '', email: '', mensaje: '' });
+        setTimeout(() => setStatus('idle'), 4500);
+      } else {
+        setStatus('error');
+      }
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  // Fallback: abre el cliente de correo con el mensaje pre-escrito
+  const mailtoFallback = () => {
+    const subject = encodeURIComponent(`Portafolio — mensaje de ${form.nombre}`);
     const body = encodeURIComponent(
       `Hola Eddy, mi nombre es ${form.nombre} (${form.email}).\n\n${form.mensaje}\n\n— Enviado desde tu portafolio web`
     );
@@ -176,20 +207,76 @@ export default function Contact() {
                 />
               </div>
 
+              {/* honeypot anti-spam de Formspree (invisible para humanos) */}
+              <input
+                type="text"
+                name="_gotcha"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                value={form.honey || ''}
+                onChange={(e) => setForm({ ...form, honey: e.target.value })}
+                style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0 }}
+              />
+
               <motion.button
                 type="submit"
+                disabled={status === 'sending'}
                 whileTap={{ scale: 0.97 }}
-                className="w-full py-3.5 rounded-xl font-bold text-void bg-gradient-to-r from-neon to-skyblue hover:shadow-neon hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl font-bold text-void bg-gradient-to-r from-neon to-skyblue hover:shadow-neon hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70"
               >
-                <MailOpen className="w-5 h-5" />
-                Abrir mi correo con el mensaje
+                {status === 'sending' && (
+                  <span className="w-4 h-4 border-2 border-void/30 border-t-void rounded-full animate-spin" />
+                )}
+                {status === 'sent' ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5" />
+                    ¡Mensaje enviado!
+                  </>
+                ) : status === 'error' ? (
+                  <>
+                    <AlertCircle className="w-5 h-5" />
+                    Error — reintentar
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    {status === 'sending' ? 'Enviando…' : 'Enviar mensaje'}
+                  </>
+                )}
               </motion.button>
 
+              {status === 'sent' && (
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center font-mono text-xs text-neon"
+                >
+                  → mensaje entregado a {profile.email} ✓
+                </motion.p>
+              )}
+              {status === 'error' && (
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center font-mono text-xs text-red-400"
+                >
+                  → error al enviar.{' '}
+                  <button
+                    type="button"
+                    onClick={mailtoFallback}
+                    className="underline underline-offset-2 text-neon hover:text-magenta"
+                  >
+                    Abrir mi correo como alternativa
+                  </button>
+                </motion.p>
+              )}
+
               <p className="text-center font-mono text-[11px] text-muted leading-relaxed">
-                → Al enviar se abre tu cliente de correo (Gmail, Outlook…)
+                → Se envía directo a mi bandeja vía Formspree (gratis,
                 <br />
-                con el mensaje listo para ti.{' '}
-                <span className="text-neon">Sin servidores, sin costos.</span>
+                sin servidores).{' '}
+                <span className="text-neon">Spam protegido.</span>
               </p>
             </div>
           </motion.form>
@@ -217,7 +304,7 @@ export default function Contact() {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a
-                    href="https://wa.me/584269154122?text=Hola%20Eddy%2C%20vi%20tu%20portafolio%20y%20me%20gustar%C3%ADa%20conversar%20sobre%20un%20proyecto."
+                    href={whatsappCta}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-500/90 text-white text-sm font-bold hover:bg-green-500 hover:shadow-[0_0_24px_rgba(34,197,94,.5)] transition-all"
@@ -232,30 +319,22 @@ export default function Contact() {
             <div className="glass rounded-2xl p-6 font-mono text-xs text-muted">
               <p className="text-neon mb-2">$ cat docs/ENLACES.md</p>
               <p className="leading-relaxed">
-                <span className="text-skyblue">github:</span>{' '}
-                <a className="text-neon hover:underline" href="https://github.com/eddy16pacheco-lab/" target="_blank" rel="noreferrer">
-                  github.com/eddy16pacheco-lab
-                </a>
-                <br />
-                <span className="text-skyblue">instagram:</span>{' '}
-                <a className="text-neon hover:underline" href="https://www.instagram.com/eddypac_19/" target="_blank" rel="noreferrer">
-                  @eddypac_19
-                </a>
-                <br />
-                <span className="text-skyblue">facebook:</span>{' '}
-                <a className="text-neon hover:underline" href="https://www.facebook.com/pacheco.mijares.2025" target="_blank" rel="noreferrer">
-                  pacheco.mijares.2025
-                </a>
-                <br />
-                <span className="text-skyblue">whatsapp:</span>{' '}
-                <a className="text-neon hover:underline" href="https://wa.me/584269154122" target="_blank" rel="noreferrer">
-                  +58 426-915-4122
-                </a>
-                <br />
-                <span className="text-skyblue">barbapp demo:</span>{' '}
-                <a className="text-neon hover:underline" href="https://eddy16pacheco-lab.github.io/BARBEAPP/" target="_blank" rel="noreferrer">
-                  eddy16pacheco-lab.github.io/BARBEAPP
-                </a>
+                {enlaceSections.map((s) => (
+                  <span key={s.title}>
+                    <span className="text-skyblue">{s.key}:</span>{' '}
+                    <a
+                      className="text-neon hover:underline"
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {s.href
+                        .replace(/^https?:\/\//, '')
+                        .replace(/^www\./, '')}
+                    </a>
+                    <br />
+                  </span>
+                ))}
               </p>
             </div>
           </motion.div>

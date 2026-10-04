@@ -18,11 +18,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # Sitio de PROYECTO (repo "portafolio-web"):
-      #   https://eddy16pacheco-lab.github.io/portafolio-web/
+      # Sitio de PROYECTO (repo "portafolio_web"):
+      #   https://eddy16pacheco-lab.github.io/portafolio_web/
+      # ⚠ BASE_PATH debe coincidir con el nombre del repo en GitHub.
       # Si despliegas en el repo "eddy16pacheco-lab.github.io" (sitio de usuario),
       # cambia esto a:  BASE_PATH: /
-      BASE_PATH: /portafolio-web/
+      BASE_PATH: /portafolio_web/
     steps:
       - name: Checkout
         uses: actions/checkout@v4

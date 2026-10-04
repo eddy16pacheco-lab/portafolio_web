@@ -13,6 +13,7 @@ import {
   GitBranch,
   BrainCircuit,
   Wrench,
+  Globe,
 } from 'lucide-react';
 
 // ─── Assets locales (integrados desde /img y /docs) ───
@@ -45,6 +46,55 @@ import barbappMd from '../../docs/README_BARBEAPP.md?raw';
 
 export { fotoEddy, logoGrande, logoAncho, cvPdf };
 
+// ─── Enlaces parseados desde docs/ENLACES.md (regla 2.1 de MEMORY.md) ───
+// Los enlaces de contacto se leen del archivo fuente; NO están hardcodeados.
+import { parseEnlaces } from '../utils/parseEnlaces.js';
+import enlacesMd from '../../docs/ENLACES.md?raw';
+
+const { sections: enlaceSections, phones: telefonosEnlaces } =
+  parseEnlaces(enlacesMd);
+
+export { enlaceSections };
+
+const findEnlace = (key) => enlaceSections.find((s) => s.key === key);
+
+const prettyUrl = (href) =>
+  href
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/$/, '');
+
+const waEnlace = findEnlace('whatsapp');
+const telefonoRaw =
+  waEnlace?.phones?.[0] ?? telefonosEnlaces[0] ?? '+584269154122';
+const telefonoDigits = telefonoRaw.replace(/\D/g, '');
+export const telefono = `+${telefonoDigits}`;
+
+export const formatPhone = (p) => {
+  const d = p.replace(/\D/g, '');
+  if (d.length === 12 && d.startsWith('58')) {
+    return `+${d.slice(0, 2)} ${d.slice(2, 5)}-${d.slice(5, 8)}-${d.slice(8)}`;
+  }
+  return p;
+};
+
+export const barbappDemo =
+  findEnlace('barbapp')?.href ??
+  'https://eddy16pacheco-lab.github.io/BARBEAPP/';
+
+export const whatsappCta = `${
+  waEnlace?.href ?? `https://wa.me/${telefonoDigits}`
+}?text=${encodeURIComponent(
+  'Hola Eddy, vi tu portafolio y me gustaría conversar sobre un proyecto.'
+)}`;
+
+// ─── Formspree (formulario de contacto real) ───
+// Endpoint público de Formspree; puede sobreescribirse con la
+// variable de entorno VITE_FORMSPREE_ENDPOINT (ej. en .env.local).
+export const formspreeEndpoint =
+  import.meta.env.VITE_FORMSPREE_ENDPOINT ||
+  'https://formspree.io/f/xqpezdok';
+
 // ─── Identidad ───
 export const profile = {
   name: 'Eddy Pacheco',
@@ -53,8 +103,8 @@ export const profile = {
   tagline: 'Si tienes una gran idea, ven y hablemos; la crearemos juntos.',
   specialty: 'Desarrollo Web · Bases de Datos Relacionales · IA Aplicada',
   location: 'Acevedo, Miranda, Venezuela',
-  email: 'eddy16pacheco@gmail.com',
-  phone: '+58 426-915-4122',
+  email: 'eddy15pacheco@gmail.com',
+  phone: formatPhone(telefono),
   photo: fotoEddy,
 };
 
@@ -192,7 +242,7 @@ export const projects = [
     accent: 'magenta',
     description:
       'Sistema de gestión integral para barberías desarrollado con JavaScript, HTML/CSS y base de datos SQL. Incluye administración de citas, gestión de clientes, procesamiento de pagos en línea y programas de fidelización, con una interfaz elegante en tonos oscuros orientada a la experiencia del usuario.',
-    demo: 'https://eddy16pacheco-lab.github.io/BARBEAPP/',
+    demo: barbappDemo,
     repo: null,
     intro: null,
   },
@@ -234,14 +284,22 @@ export const experience = [
   },
 ];
 
-// ─── Contacto (consumido de docs/ENLACES.md + CV) ───
-export const contactLinks = [
+// ─── Contacto (parseado de docs/ENLACES.md — regla 2.1 de MEMORY.md) ───
+// Nota: el correo NO está en enlaces.md (viene del CV), por eso se toma de `profile`.
+const enlaceOk = !!(
+  findEnlace('github') &&
+  findEnlace('instagram') &&
+  findEnlace('facebook') &&
+  waEnlace
+);
+
+const contactLinksDinamicos = [
   {
     id: 'whatsapp',
     icon: MessageCircle,
     label: 'WhatsApp',
-    value: '+58 426-915-4122',
-    href: 'https://wa.me/584269154122?text=Hola%20Eddy%2C%20vi%20tu%20portafolio%20y%20me%20gustar%C3%ADa%20conversar.',
+    value: formatPhone(telefono),
+    href: waEnlace.href,
     gradient: 'from-green-400 to-emerald-600',
     glow: 'hover:shadow-[0_0_28px_rgba(34,197,94,.45)]',
     border: 'hover:border-green-400/50',
@@ -250,8 +308,8 @@ export const contactLinks = [
     id: 'github',
     icon: Github,
     label: 'GitHub',
-    value: 'eddy16pacheco-lab',
-    href: 'https://github.com/eddy16pacheco-lab/',
+    value: prettyUrl(findEnlace('github').href),
+    href: findEnlace('github').href,
     gradient: 'from-slate-300 to-slate-500',
     glow: 'hover:shadow-[0_0_28px_rgba(148,163,184,.4)]',
     border: 'hover:border-slate-300/50',
@@ -260,8 +318,8 @@ export const contactLinks = [
     id: 'instagram',
     icon: Instagram,
     label: 'Instagram',
-    value: '@eddypac_19',
-    href: 'https://www.instagram.com/eddypac_19/',
+    value: `@${findEnlace('instagram').href.split('/').filter(Boolean).pop()}`,
+    href: findEnlace('instagram').href,
     gradient: 'from-fuchsia-500 to-amber-500',
     glow: 'hover:shadow-[0_0_28px_rgba(217,70,239,.4)]',
     border: 'hover:border-fuchsia-400/50',
@@ -270,18 +328,28 @@ export const contactLinks = [
     id: 'facebook',
     icon: Facebook,
     label: 'Facebook',
-    value: 'pacheco.mijares.2025',
-    href: 'https://www.facebook.com/pacheco.mijares.2025',
+    value: prettyUrl(findEnlace('facebook').href),
+    href: findEnlace('facebook').href,
     gradient: 'from-blue-500 to-sky-400',
     glow: 'hover:shadow-[0_0_28px_rgba(59,130,246,.4)]',
     border: 'hover:border-blue-400/50',
   },
   {
+    id: 'barbapp',
+    icon: Globe,
+    label: 'BarbApp — Demo',
+    value: prettyUrl(barbappDemo),
+    href: barbappDemo,
+    gradient: 'from-neon to-skyblue',
+    glow: 'hover:shadow-[0_0_28px_rgba(0,242,254,.45)]',
+    border: 'hover:border-neon/50',
+  },
+  {
     id: 'email',
     icon: Mail,
     label: 'Correo Electrónico',
-    value: 'eddy16pacheco@gmail.com',
-    href: 'mailto:eddy16pacheco@gmail.com',
+    value: profile.email,
+    href: `mailto:${profile.email}`,
     gradient: 'from-neon to-skyblue',
     glow: 'hover:shadow-[0_0_28px_rgba(0,242,254,.45)]',
     border: 'hover:border-neon/50',
@@ -290,13 +358,27 @@ export const contactLinks = [
     id: 'phone',
     icon: Phone,
     label: 'Teléfono',
-    value: '+58 426-915-4122',
-    href: 'tel:+584269154122',
+    value: formatPhone(telefono),
+    href: `tel:${telefonoDigits}`,
     gradient: 'from-cyber to-magenta',
     glow: 'hover:shadow-[0_0_28px_rgba(127,0,255,.45)]',
     border: 'hover:border-cyber/50',
   },
 ];
+
+// Fallback: si cambia el formato de enlaces.md, la sección contacto nunca se rompe
+const FALLBACK_CONTACT_LINKS = [
+  { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', value: '+58 426-915-4122', href: 'https://wa.me/584269154122', gradient: 'from-green-400 to-emerald-600', glow: 'hover:shadow-[0_0_28px_rgba(34,197,94,.45)]', border: 'hover:border-green-400/50' },
+  { id: 'github', icon: Github, label: 'GitHub', value: 'eddy16pacheco-lab', href: 'https://github.com/eddy16pacheco-lab/', gradient: 'from-slate-300 to-slate-500', glow: 'hover:shadow-[0_0_28px_rgba(148,163,184,.4)]', border: 'hover:border-slate-300/50' },
+  { id: 'instagram', icon: Instagram, label: 'Instagram', value: '@eddypac_19', href: 'https://www.instagram.com/eddypac_19/', gradient: 'from-fuchsia-500 to-amber-500', glow: 'hover:shadow-[0_0_28px_rgba(217,70,239,.4)]', border: 'hover:border-fuchsia-400/50' },
+  { id: 'facebook', icon: Facebook, label: 'Facebook', value: 'pacheco.mijares.2025', href: 'https://www.facebook.com/pacheco.mijares.2025', gradient: 'from-blue-500 to-sky-400', glow: 'hover:shadow-[0_0_28px_rgba(59,130,246,.4)]', border: 'hover:border-blue-400/50' },
+  { id: 'email', icon: Mail, label: 'Correo Electrónico', value: 'eddy15pacheco@gmail.com', href: 'mailto:eddy15pacheco@gmail.com', gradient: 'from-neon to-skyblue', glow: 'hover:shadow-[0_0_28px_rgba(0,242,254,.45)]', border: 'hover:border-neon/50' },
+  { id: 'phone', icon: Phone, label: 'Teléfono', value: '+58 426-915-4122', href: 'tel:+584269154122', gradient: 'from-cyber to-magenta', glow: 'hover:shadow-[0_0_28px_rgba(127,0,255,.45)]', border: 'hover:border-cyber/50' },
+];
+
+export const contactLinks = enlaceOk
+  ? contactLinksDinamicos
+  : FALLBACK_CONTACT_LINKS;
 
 export const locationInfo = {
   icon: MapPin,
