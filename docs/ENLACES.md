@@ -1,7 +1,7 @@
 # Concatos y Enlaces a sistemas
  
 ***Sistema Web de Barberia BARBEAPP***
-https://eddy16pacheco-lab.github.io/BARBEAPP/
+https://barbeapp.vercel.app/
 
 ***Perfil de GitHub***
 ([https://github.com/eddy16pacheco-lab/])

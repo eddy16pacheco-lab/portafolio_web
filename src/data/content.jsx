@@ -80,7 +80,7 @@ export const formatPhone = (p) => {
 
 export const barbappDemo =
   findEnlace('barbapp')?.href ??
-  'https://eddy16pacheco-lab.github.io/BARBEAPP/';
+  'https://barbeapp.vercel.app/';
 
 export const whatsappCta = `${
   waEnlace?.href ?? `https://wa.me/${telefonoDigits}`
